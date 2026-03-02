@@ -6,14 +6,16 @@
 - All work goes to `dev` (feature/fix branches -> `dev`)
 - Push/merge to `main` only by explicit owner command
 
-## Current roadmap
-
+-## Current roadmap
+-
 - [x] Stage 1: Database migrations and db-layer
 - [x] Stage 2: Telegraf middleware (auth/role/shopStatus)
 - [x] Stage 3: `/start` + invite onboarding
 - [x] Stage 4: SUPER_ADMIN commands
 - [x] Stage 5: SHOP_ADMIN commands
-- [ ] Stage 6: OPERATOR `/new` FSM (steps 1-9)
+- [x] Stage 6: OPERATOR `/new` FSM (steps 1-9)
+- [ ] Stage 7: Cron jobs
+- [ ] Stage 8: Hardening and cleanup
 - [ ] Stage 7: Cron jobs
 - [ ] Stage 8: Hardening and cleanup
 

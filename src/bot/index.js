@@ -24,6 +24,12 @@ const { handleResumeShop } = require("./commands/superAdmin/resumeShop");
 const { handleDeleteShop } = require("./commands/superAdmin/deleteShop");
 const { handleResetStats } = require("./commands/superAdmin/resetStats");
 const { handleGlobalStats } = require("./commands/superAdmin/globalStats");
+const {
+  startNewOrder,
+  handlePhoto,
+  handleText,
+  handleCallback
+} = require("./newOrder");
 
 function createBot() {
   const bot = new Telegraf(config.botToken);
@@ -52,12 +58,16 @@ function createBot() {
   bot.command("my_plan", handleMyPlan);
 
   bot.command("new", async (ctx) => {
-    await ctx.reply("/new flow is not wired yet. Next step: FSM implementation.");
+    await startNewOrder(ctx);
   });
+
+  bot.on("photo", handlePhoto);
+  bot.on("text", handleText);
 
   bot.on(["photo", "document"], handleLogoUpload);
   registerConfirmRemoveOperator(bot);
   registerReplaceTemplate(bot);
+  bot.action(/^(style_|edit_|confirm_generate|variant_|regen|skip_photos)$/, handleCallback);
 
   bot.catch((err, ctx) => {
     console.error("Bot error", { err, updateId: ctx.update?.update_id });

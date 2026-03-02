@@ -86,6 +86,23 @@ async function updateShopLimits(shopId, payload) {
   return data;
 }
 
+async function incrementGenerationsUsage(shopId, increment = 1) {
+  const shop = await getShopById(shopId);
+  if (!shop) {
+    throw new Error(`Shop ${shopId} not found when incrementing generations`);
+  }
+
+  const { data, error } = await supabase
+    .from("shops")
+    .update({ generations_used: (shop.generations_used || 0) + increment })
+    .eq("id", shopId)
+    .select("*")
+    .single();
+
+  assertNoError(error, "increment generations failed");
+  return data;
+}
+
 async function resetShopGenerationUsage(shopId) {
   const { data, error } = await supabase
     .from("shops")
@@ -118,5 +135,6 @@ module.exports = {
   updateShopPlan,
   resetShopGenerationUsage,
   updateShopLogoTemplateUrl,
-  updateShopLimits
+  updateShopLimits,
+  incrementGenerationsUsage
 };
