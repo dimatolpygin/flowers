@@ -237,6 +237,7 @@ async function generateAndShowVariants(ctx, options = {}) {
   }
 
   order.generation.variants = variants;
+  session.lastGeneratedVariants = variants;
   order.step = 7;
   await presentVariants(ctx, variants);
 }
@@ -348,19 +349,30 @@ function extractImageUrls(record) {
 async function selectVariant(ctx, index) {
   const session = ensureSession(ctx);
   const order = session.newOrder;
-  if (!order || !order.generation.variants[index]) {
+  const fromOrder = order?.generation?.variants?.[index];
+  const fallback = session.lastGeneratedVariants?.[index];
+  const variantUrl = fromOrder?.url || fallback?.url;
+
+  if (!variantUrl) {
     await ctx.answerCbQuery("Вариант не найден");
     return;
   }
+
+  order.generation = order.generation || {};
   order.generation.selectedVariant = index;
   await ctx.answerCbQuery(`Выбран вариант ${index + 1}`);
-  await finalizeOrder(ctx, order, index);
+  await finalizeOrder(ctx, order, index, variantUrl);
 }
 
-async function finalizeOrder(ctx, order, variantIndex) {
+async function finalizeOrder(ctx, order, variantIndex, variantUrlOverride) {
   const shop = ctx.state.shop;
-  const variant = order.generation.variants[variantIndex];
-  const buffer = await fetchImageBuffer(variant.url);
+  const variantEntry = order.generation.variants?.[variantIndex] || {};
+  const variantUrl = variantUrlOverride || variantEntry.url;
+  if (!variantUrl) {
+    await ctx.reply("Не удалось найти URL выбранного варианта.");
+    return;
+  }
+  const buffer = await fetchImageBuffer(variantUrl);
   const png = await sharp(buffer)
     .resize(1240, 1748)
     .withMetadata({ density: 300 })
@@ -369,6 +381,13 @@ async function finalizeOrder(ctx, order, variantIndex) {
 
   const pdf = await renderPdf(png);
 
+  const variantUrls = (order.generation.variants || [])
+    .map((variant) => variant.url)
+    .filter(Boolean);
+  if (!variantUrls.includes(variantUrl)) {
+    variantUrls.push(variantUrl);
+  }
+
   const orderRecord = await orders.createOrder({
     shopId: shop.id,
     operatorId: ctx.state.user.id,
@@ -376,7 +395,7 @@ async function finalizeOrder(ctx, order, variantIndex) {
     style: order.style,
     description: order.description,
     greetingText: order.greeting,
-    variants: order.generation.variants.map((variant) => variant.url),
+    variants: variantUrls,
     chosenVariant: variantIndex + 1,
     regenCount: order.generation.regenCount
   });
@@ -387,7 +406,7 @@ async function finalizeOrder(ctx, order, variantIndex) {
     operatorId: ctx.state.user.id,
     resolutionUsed: shop.resolution,
     is_regen: order.generation.regenCount > 0,
-    api_credits_spent: variant.credits || 0
+    api_credits_spent: variantEntry.credits || 0
   });
 
   await shops.incrementGenerationsUsage(shop.id);
