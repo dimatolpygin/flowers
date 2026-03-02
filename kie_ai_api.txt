@@ -1,0 +1,249 @@
+# Nano Banana 2 API — Документация
+
+> Powered by **Google Gemini 3.1 Flash Image** | Стоимость от **$0.04/изображение**
+> Официальная документация: [docs.kie.ai/market/google/nano-banana-2](https://docs.kie.ai/market/google/nano-banana-2)
+
+---
+
+## Обзор
+
+Nano Banana 2 — это API для генерации и редактирования изображений на базе Google Gemini 3.1 Flash Image. Поддерживает:
+- **Text-to-Image** — генерация по текстовому описанию
+- **Image-to-Image** — редактирование/трансформация существующих изображений
+- **4K output** и ультра-широкие соотношения сторон (4:1, 1:4, 8:1)
+- **Search Grounding** — генерация с учётом реальной информации из Google
+
+---
+
+## Аутентификация
+
+Все запросы требуют Bearer Token в заголовке.
+
+**Получить API ключ:** [kie.ai/api-key](https://kie.ai/api-key)
+
+```http
+Authorization: Bearer YOUR_API_KEY
+Content-Type: application/json
+```
+
+> ⚠️ Никогда не передавайте ключ в frontend-коде (браузер, мобильные приложения, публичные репозитории).
+
+---
+
+## Создание задачи
+
+### Endpoint
+
+```
+POST https://api.kie.ai/api/v1/jobs/createTask
+```
+
+### Headers
+
+| Заголовок       | Значение                  | Обязателен |
+|----------------|---------------------------|-----------|
+| Authorization  | Bearer YOUR_API_KEY        | ✅ Да      |
+| Content-Type   | application/json           | ✅ Да      |
+
+---
+
+### Тело запроса
+
+```json
+{
+  "model": "nano-banana-2",
+  "callBackUrl": "https://your-domain.com/api/callback",
+  "input": {
+    "prompt": "string",
+    "image_input": [],
+    "aspect_ratio": "auto",
+    "google_search": false,
+    "resolution": "2K",
+    "output_format": "jpg"
+  }
+}
+```
+
+### Параметры
+
+| Параметр        | Тип        | Обязателен | Описание |
+|----------------|------------|-----------|----------|
+| `model`        | string     | ✅ Да      | Всегда `"nano-banana-2"` |
+| `callBackUrl`  | string     | ❌ Нет     | Webhook URL для получения результата (рекомендуется) |
+| `input`        | object     | ✅ Да      | Входные параметры задачи |
+
+### Параметры `input`
+
+| Параметр        | Тип        | Обязателен | Значения | Описание |
+|----------------|------------|-----------|----------|----------|
+| `prompt`       | string     | ✅ Да      | —        | Текстовое описание генерируемого изображения |
+| `image_input`  | array      | ❌ Нет     | URL изображений | До 14 входных изображений (JPEG, PNG, WEBP, макс. 30MB каждое) |
+| `aspect_ratio` | string     | ❌ Нет     | `1:1`, `1:4`, `1:8`, `2:3`, `3:2`, `3:4`, `4:1`, `4:3`, `4:5`, `5:4`, `8:1`, `9:16`, `16:9`, `21:9`, `auto` | Соотношение сторон выходного изображения |
+| `google_search`| boolean    | ❌ Нет     | `true` / `false` | Использовать Google Web Search для генерации на основе актуальных данных |
+| `resolution`   | string     | ❌ Нет     | `1K`, `2K`, `4K` | Разрешение выходного изображения |
+| `output_format`| string     | ❌ Нет     | `jpg`, `png` | Формат выходного изображения |
+
+---
+
+## Примеры запросов
+
+### Text-to-Image (cURL)
+
+```bash
+curl --request POST \
+  --url https://api.kie.ai/api/v1/jobs/createTask \
+  --header 'Authorization: Bearer YOUR_API_KEY' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "model": "nano-banana-2",
+    "callBackUrl": "https://your-domain.com/api/callback",
+    "input": {
+      "prompt": "Highly detailed illustration of a futuristic banana-shaped spacecraft flying over a neon city at night, ultra realistic lighting, cinematic, 4K",
+      "aspect_ratio": "16:9",
+      "resolution": "4K",
+      "output_format": "jpg",
+      "google_search": false,
+      "image_input": []
+    }
+  }'
+```
+
+### Image-to-Image (cURL)
+
+```bash
+curl --request POST \
+  --url https://api.kie.ai/api/v1/jobs/createTask \
+  --header 'Authorization: Bearer YOUR_API_KEY' \
+  --header 'Content-Type: application/json' \
+  --data '{
+    "model": "nano-banana-2",
+    "callBackUrl": "https://your-domain.com/api/callback",
+    "input": {
+      "prompt": "Transform this photo into a futuristic anime style",
+      "image_input": ["https://your-domain.com/input-image.jpg"],
+      "aspect_ratio": "auto",
+      "resolution": "2K",
+      "output_format": "png",
+      "google_search": false
+    }
+  }'
+```
+
+### JavaScript (Node.js / n8n HTTP Request)
+
+```javascript
+const response = await fetch('https://api.kie.ai/api/v1/jobs/createTask', {
+  method: 'POST',
+  headers: {
+    'Authorization': 'Bearer YOUR_API_KEY',
+    'Content-Type': 'application/json'
+  },
+  body: JSON.stringify({
+    model: 'nano-banana-2',
+    callBackUrl: 'https://your-domain.com/api/callback',
+    input: {
+      prompt: 'A serene Japanese garden at sunrise, 4K, photorealistic',
+      aspect_ratio: '16:9',
+      resolution: '4K',
+      output_format: 'jpg',
+      google_search: false,
+      image_input: []
+    }
+  })
+});
+const data = await response.json();
+console.log(data.data.taskId); // task_nano-banana-2_xxxxxxxxxx
+```
+
+---
+
+## Ответ на запрос создания задачи
+
+### Успешный ответ `200`
+
+```json
+{
+  "code": 200,
+  "msg": "success",
+  "data": {
+    "taskId": "task_nano-banana-2_1765178625768"
+  }
+}
+```
+
+---
+
+## Получение результата задачи
+
+Все задачи на Kie.ai асинхронны. Результат можно получить двумя способами:
+
+### Способ 1: Webhook (рекомендуется)
+Укажите `callBackUrl` в запросе — результат будет доставлен автоматически по завершении.
+
+### Способ 2: Polling (опрос)
+
+```
+GET https://api.kie.ai/api/v1/jobs/queryRecord?taskId=TASK_ID
+```
+
+```bash
+curl --request GET \
+  --url 'https://api.kie.ai/api/v1/jobs/queryRecord?taskId=task_nano-banana-2_1765178625768' \
+  --header 'Authorization: Bearer YOUR_API_KEY'
+```
+
+---
+
+## Коды ответов (HTTP)
+
+| Код   | Описание |
+|------|----------|
+| `200` | Запрос успешен, задача создана |
+| `401` | Ошибка аутентификации — неверный или отсутствующий API ключ |
+| `402` | Недостаточно кредитов |
+| `404` | Ресурс не найден |
+| `422` | Ошибка валидации — неверные параметры запроса |
+| `429` | Превышен лимит запросов (Rate Limit) |
+| `455` | Ошибка модели / задача не выполнена |
+| `500` | Внутренняя ошибка сервера |
+| `501` | Функциональность не реализована |
+| `505` | Ошибка версии API |
+
+---
+
+## Лимиты и ограничения
+
+| Параметр | Значение |
+|---------|----------|
+| Макс. новых запросов | 20 за 10 секунд |
+| Макс. параллельных задач | 100+ |
+| Хранение медиафайлов | 14 дней |
+| Хранение логов | 2 месяца |
+| Макс. файлов в `image_input` | 14 изображений |
+| Макс. размер файла | 30MB |
+| Форматы изображений | JPEG, PNG, WEBP |
+
+---
+
+## Сравнение моделей Nano Banana
+
+| Параметр         | Nano Banana       | Nano Banana 2        | Nano Banana Pro      |
+|-----------------|-------------------|-----------------------|-----------------------|
+| Основа          | Gemini 2.5 Flash  | Gemini 3.1 Flash      | Gemini 3 Pro          |
+| Макс. разрешение | 2K               | **4K**                | 4K                    |
+| Скорость        | Быстрая           | **Очень быстрая**     | Медленнее             |
+| Качество        | Стандартное       | Про-уровень           | **Максимальное**      |
+| Стоимость       | $0.02/img         | **$0.04/img**         | Выше                  |
+| Wide Ratios     | ❌                | ✅ (4:1, 8:1, 1:8)    | ✅                    |
+| Search Grounding| ❌                | ✅                    | ✅                    |
+
+---
+
+## Полезные ссылки
+
+- 🔑 [Получить API ключ](https://kie.ai/api-key)
+- 🧪 [Playground для тестирования](https://kie.ai/nano-banana-2)
+- 📜 [Официальная документация](https://docs.kie.ai/market/google/nano-banana-2)
+- 💰 [Ценообразование](https://kie.ai/pricing)
+- 📋 [Логи задач](https://kie.ai/logs)
+- 🌐 [Все доступные модели](https://kie.ai/market)
