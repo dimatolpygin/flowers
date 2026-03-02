@@ -266,19 +266,34 @@ async function buildImageInput(ctx, order) {
 }
 
 async function waitForKieResult(taskId) {
-  const maxAttempts = 30;
+  const maxAttempts = 90;
+  const pollIntervalMs = 2000;
+
   for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const record = await queryTask(taskId);
-    const status = (record?.data?.status || record?.data?.state || "").toLowerCase();
-    if (["success", "completed", "succeeded"].includes(status)) {
+    const raw = await queryTask(taskId);
+    const record = Array.isArray(raw) ? raw[0] : raw;
+    const data = record?.data || {};
+    const status = String(
+      data.state || data.status || data.taskStatus || data.resultStatus || ""
+    ).toLowerCase();
+
+    const urls = extractImageUrls(record);
+    if (urls.length) {
       return record;
     }
-    if (["failed", "error", "rejected"].includes(status)) {
-      throw new Error("Ошибка генерации");
+
+    if (["success", "completed", "succeeded", "done", "finished"].includes(status)) {
+      return record;
     }
-    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    if (["failed", "error", "rejected", "cancelled"].includes(status)) {
+      throw new Error(data.failMsg || "Ошибка генерации");
+    }
+
+    await new Promise((resolve) => setTimeout(resolve, pollIntervalMs));
   }
-  throw new Error("Таймаут генерации");
+
+  throw new Error("Таймаут генерации (180с)");
 }
 
 function extractImageUrls(record) {
