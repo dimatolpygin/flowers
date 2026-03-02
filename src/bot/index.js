@@ -69,6 +69,7 @@ function createBot() {
   registerConfirmRemoveOperator(bot);
   registerReplaceTemplate(bot);
   bot.action(/^(style_|edit_|confirm_generate|variant_|regen|skip_photos|ready_photos)/, handleCallback);
+  bot.action(/^(create_shop|shops|global_stats|add_operator|operators|my_plan|new)$/, handleStartAction);
 
   bot.catch((err, ctx) => {
     console.error("Bot error", { err, updateId: ctx.update?.update_id });

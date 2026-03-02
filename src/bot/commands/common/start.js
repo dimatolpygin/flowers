@@ -21,6 +21,37 @@ function isInvitePayload(text) {
   return Boolean(text && text.startsWith(INVITE_PREFIX));
 }
 
+const START_ACTIONS = {
+  create_shop: {
+    role: "super_admin",
+    text: "Введите /create_shop \"Название\" чтобы добавить магазин."
+  },
+  shops: {
+    role: "super_admin",
+    text: "Список магазинов доступен через /shops."
+  },
+  global_stats: {
+    role: "super_admin",
+    text: "Статистика — /global_stats [день|неделя|месяц]."
+  },
+  add_operator: {
+    role: "shop_admin",
+    text: "Пригласите оператора: /add_operator Иван Иванов"
+  },
+  operators: {
+    role: "shop_admin",
+    text: "Ваши операторы — /operators."
+  },
+  my_plan: {
+    role: "shop_admin",
+    text: "Тариф и лимиты — /my_plan."
+  },
+  new: {
+    role: "operator",
+    text: "Сделать открытку: /new"
+  }
+};
+
 async function handleStart(ctx) {
   if (isInvitePayload(ctx.startPayload)) {
     return handleInvite(ctx, ctx.startPayload.slice(INVITE_PREFIX.length));
@@ -179,7 +210,30 @@ function roleLayout(role) {
   };
 }
 
+async function handleStartAction(ctx) {
+  const data = ctx.callbackQuery?.data;
+  if (!data) {
+    return;
+  }
+
+  const action = START_ACTIONS[data];
+  if (!action) {
+    await ctx.answerCbQuery("Действие не поддерживается");
+    return;
+  }
+
+  const role = ctx.state.user?.role;
+  if (role !== action.role) {
+    await ctx.answerCbQuery("Нет доступа к этому действию");
+    return;
+  }
+
+  await ctx.answerCbQuery();
+  await ctx.reply(action.text);
+}
+
 module.exports = {
   handleStart,
-  handleHelp
+  handleHelp,
+  handleStartAction
 };
