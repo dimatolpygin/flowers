@@ -244,7 +244,13 @@ async function generateAndShowVariants(ctx, options = {}) {
 async function presentVariants(ctx, variants) {
   await ctx.reply("Готово! Выбери вариант:");
   for (let i = 0; i < variants.length; i++) {
-    await ctx.replyWithPhoto(variants[i].url, { caption: `Вариант ${i + 1}` });
+    try {
+      const buffer = await downloadImageBuffer(variants[i].url);
+      await ctx.replyWithPhoto({ source: buffer }, { caption: `Вариант ${i + 1}` });
+    } catch (err) {
+      console.error("variant download failed", err);
+      await ctx.reply(`Не удалось загрузить вариант ${i + 1}. Попробуйте перегенерировать.`);
+    }
   }
   await ctx.reply("Выбери вариант или перегенерируй:", Markup.inlineKeyboard([
     [Markup.button.callback("✅ Вариант 1", "variant_1"), Markup.button.callback("✅ Вариант 2", "variant_2")],
