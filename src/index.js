@@ -1,6 +1,7 @@
 const { config, validateEnv } = require("./config");
 const { createBot } = require("./bot");
 const { connectRedis, redis } = require("./cache/client");
+const { startCronJobs } = require("./cron");
 
 async function main() {
   validateEnv();
@@ -8,6 +9,7 @@ async function main() {
 
   const bot = createBot();
   await bot.launch();
+  startCronJobs(bot);
 
   console.log(`Bot started in ${config.nodeEnv} mode`);
 

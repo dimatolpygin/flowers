@@ -42,7 +42,11 @@ const config = {
   superAdminIds: parseIdList(process.env.SUPER_ADMIN_IDS || ""),
   supabaseBucketLogos: process.env.SUPABASE_BUCKET_LOGOS || "logos",
   supabaseBucketOutputs: process.env.SUPABASE_BUCKET_OUTPUTS || "outputs",
-  botUsername: process.env.BOT_USERNAME || ""
+  botUsername: process.env.BOT_USERNAME || "",
+  cronEnabled: process.env.CRON_ENABLED !== "false",
+  cronDailySchedule: process.env.CRON_DAILY_SCHEDULE || "0 0 * * *",
+  cronMonthlySchedule: process.env.CRON_MONTHLY_SCHEDULE || "0 0 1 * *",
+  cronLockTtlSeconds: Number(process.env.CRON_LOCK_TTL_SECONDS) || 300
 };
 
 module.exports = {
