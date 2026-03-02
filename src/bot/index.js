@@ -2,11 +2,17 @@ const { Telegraf, session } = require("telegraf");
 const { config } = require("../config");
 const { buildSessionStore } = require("../cache/session");
 const { handleStart } = require("./commands/common/start");
+const { ensureAuth } = require("./middleware/auth");
+const { enforceRoles } = require("./middleware/role");
+const { checkShopStatus } = require("./middleware/shopStatus");
 
 function createBot() {
   const bot = new Telegraf(config.botToken);
 
   bot.use(session({ store: buildSessionStore() }));
+  bot.use(ensureAuth);
+  bot.use(enforceRoles);
+  bot.use(checkShopStatus);
 
   bot.start(handleStart);
 
