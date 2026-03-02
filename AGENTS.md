@@ -10,7 +10,7 @@
 
 - [x] Stage 1: Database migrations and db-layer
 - [x] Stage 2: Telegraf middleware (auth/role/shopStatus)
-- [ ] Stage 3: `/start` + invite onboarding
+- [x] Stage 3: `/start` + invite onboarding
 - [ ] Stage 4: SUPER_ADMIN commands
 - [ ] Stage 5: SHOP_ADMIN commands
 - [ ] Stage 6: OPERATOR `/new` FSM (steps 1-9)

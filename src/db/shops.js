@@ -77,11 +77,24 @@ async function resetShopGenerationUsage(shopId) {
   return data;
 }
 
+async function updateShopLogoTemplateUrl(shopId, url) {
+  const { data, error } = await supabase
+    .from("shops")
+    .update({ logo_template_url: url })
+    .eq("id", shopId)
+    .select("*")
+    .single();
+
+  assertNoError(error, "update shop logo template url failed");
+  return data;
+}
+
 module.exports = {
   createShop,
   getShopById,
   listShops,
   updateShopStatus,
   updateShopPlan,
-  resetShopGenerationUsage
+  resetShopGenerationUsage,
+  updateShopLogoTemplateUrl
 };

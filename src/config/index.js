@@ -38,7 +38,9 @@ const config = {
   kieApiKey: process.env.KIE_API_KEY || "",
   kieApiBaseUrl: process.env.KIE_API_BASE_URL || "https://api.kie.ai",
   kieModel: process.env.KIE_MODEL || "nano-banana-2",
-  superAdminIds: parseIdList(process.env.SUPER_ADMIN_IDS || "")
+  superAdminIds: parseIdList(process.env.SUPER_ADMIN_IDS || ""),
+  supabaseBucketLogos: process.env.SUPABASE_BUCKET_LOGOS || "logos",
+  supabaseBucketOutputs: process.env.SUPABASE_BUCKET_OUTPUTS || "outputs"
 };
 
 module.exports = {

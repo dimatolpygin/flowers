@@ -41,6 +41,18 @@ async function listOperatorsByShop(shopId) {
   return data || [];
 }
 
+async function listShopAdmins(shopId) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("shop_id", shopId)
+    .eq("role", "shop_admin")
+    .order("created_at", { ascending: false });
+
+  assertNoError(error, "list shop admins failed");
+  return data || [];
+}
+
 async function deleteUserById(userId) {
   const { error } = await supabase.from("users").delete().eq("id", userId);
   assertNoError(error, "delete user failed");
@@ -50,5 +62,6 @@ module.exports = {
   getUserByTelegramId,
   createUser,
   listOperatorsByShop,
+  listShopAdmins,
   deleteUserById
 };
