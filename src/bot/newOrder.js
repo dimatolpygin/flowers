@@ -21,6 +21,14 @@ function ensureSession(ctx) {
   return ctx.session;
 }
 
+function setEditMode(ctx, mode) {
+  const session = ensureSession(ctx);
+  if (!session.newOrder) {
+    session.newOrder = initNewOrderSession();
+  }
+  session.newOrder.editMode = mode;
+}
+
 function initNewOrderSession() {
   return {
     step: 1,
@@ -157,6 +165,11 @@ function handleReadyPhotos(ctx) {
   if (!order.photos.length) {
     return ctx.answerCbQuery("Загрузите хотя бы одно фото или нажмите Пропустить");
   }
+  if (order.editMode === "photos") {
+    order.editMode = null;
+    showSummary(ctx);
+    return ctx.answerCbQuery();
+  }
   askForStyle(ctx);
   ctx.answerCbQuery();
 }
@@ -169,6 +182,11 @@ function handleStyle(ctx, styleId) {
   }
   order.style = styleId;
   ctx.answerCbQuery(`Стиль: ${styleId}`);
+  if (order.editMode === "style") {
+    order.editMode = null;
+    showSummary(ctx);
+    return;
+  }
   askForDescription(ctx);
 }
 
@@ -179,17 +197,27 @@ async function handleText(ctx) {
     return;
   }
 
-  if (order.step === 3) {
-    order.description = ctx.message.text;
-    askForGreeting(ctx);
-    return;
-  }
+    if (order.step === 3) {
+      order.description = ctx.message.text;
+      if (order.editMode === "description") {
+        order.editMode = null;
+        showSummary(ctx);
+        return;
+      }
+      askForGreeting(ctx);
+      return;
+    }
 
-  if (order.step === 4) {
-    order.greeting = ctx.message.text;
-    showSummary(ctx);
-    return;
-  }
+    if (order.step === 4) {
+      order.greeting = ctx.message.text;
+      if (order.editMode === "greeting") {
+        order.editMode = null;
+        showSummary(ctx);
+        return;
+      }
+      showSummary(ctx);
+      return;
+    }
 }
 
 async function regenerateVariants(ctx) {
@@ -465,21 +493,25 @@ async function handleCallback(ctx) {
     }
 
     if (data === "edit_photos") {
+      setEditMode(ctx, "photos");
       askForPhotos(ctx);
       await ctx.answerCbQuery();
       return;
     }
     if (data === "edit_style") {
+      setEditMode(ctx, "style");
       askForStyle(ctx);
       await ctx.answerCbQuery();
       return;
     }
     if (data === "edit_description") {
+      setEditMode(ctx, "description");
       askForDescription(ctx);
       await ctx.answerCbQuery();
       return;
     }
     if (data === "edit_greeting") {
+      setEditMode(ctx, "greeting");
       askForGreeting(ctx);
       await ctx.answerCbQuery();
       return;
