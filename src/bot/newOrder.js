@@ -38,11 +38,15 @@ function initNewOrderSession() {
 
 function askForPhotos(ctx) {
   const session = ensureSession(ctx);
-  const buttons = [Markup.button.callback("Пропустить ", "skip_photos")];
   session.newOrder.step = 1;
   ctx.reply(
-    "Шаг 1 — загрузите до 2 фотографий (референсы). Отправьте фото или нажмите “Пропустить”.",
-    Markup.inlineKeyboard(buttons)
+    "Шаг 1 — загрузите до 2 фотографий (референсы). Отправьте фото, нажмите “Готово” или “Пропустить”.",
+    Markup.inlineKeyboard([
+      [
+        Markup.button.callback("Пропустить", "skip_photos"),
+        Markup.button.callback("Готово", "ready_photos")
+      ]
+    ])
   );
 }
 
@@ -119,12 +123,17 @@ async function handlePhoto(ctx) {
   }
 
   if (order.photos.length >= 2) {
-    await ctx.reply("Максимум 2 фото. Нажмите “Пропустить”, чтобы продолжить.");
+    await ctx.reply("Максимум 2 фото. Нажмите “Пропустить” или “Готово”.");
     return;
   }
 
   order.photos.push(fileId);
-  await ctx.reply(`Принято фото ${order.photos.length}/2`);
+  await ctx.reply(`Принято фото ${order.photos.length}/2`, Markup.inlineKeyboard([
+    [
+      Markup.button.callback("Готово", "ready_photos"),
+      Markup.button.callback("Пропустить", "skip_photos")
+    ]
+  ]));
   if (order.photos.length === 2) {
     askForStyle(ctx);
   }
@@ -137,6 +146,19 @@ function handleSkipPhotos(ctx) {
     return;
   }
   askForStyle(ctx);
+}
+
+function handleReadyPhotos(ctx) {
+  const session = ensureSession(ctx);
+  const order = session.newOrder;
+  if (!order) {
+    return ctx.answerCbQuery("Сессия не найдена");
+  }
+  if (!order.photos.length) {
+    return ctx.answerCbQuery("Загрузите хотя бы одно фото или нажмите Пропустить");
+  }
+  askForStyle(ctx);
+  ctx.answerCbQuery();
 }
 
 function handleStyle(ctx, styleId) {
@@ -374,6 +396,10 @@ async function handleCallback(ctx) {
   if (data === "skip_photos") {
     handleSkipPhotos(ctx);
     ctx.answerCbQuery();
+    return;
+  }
+  if (data === "ready_photos") {
+    handleReadyPhotos(ctx);
     return;
   }
 

@@ -67,7 +67,7 @@ function createBot() {
   bot.on(["photo", "document"], handleLogoUpload);
   registerConfirmRemoveOperator(bot);
   registerReplaceTemplate(bot);
-  bot.action(/^(style_|edit_|confirm_generate|variant_|regen|skip_photos)$/, handleCallback);
+  bot.action(/^(style_|edit_|confirm_generate|variant_|regen|skip_photos|ready_photos)/, handleCallback);
 
   bot.catch((err, ctx) => {
     console.error("Bot error", { err, updateId: ctx.update?.update_id });
