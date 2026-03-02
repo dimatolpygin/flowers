@@ -345,7 +345,7 @@ function renderPdf(pngBuffer) {
   });
 }
 
-function handleCallback(ctx) {
+async function handleCallback(ctx) {
   const data = ctx.callbackQuery?.data;
   if (!data) {
     return;
