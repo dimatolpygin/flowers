@@ -16,7 +16,8 @@ const COMMAND_ROLE_ALLOWLIST = {
   remove_operator: ["shop_admin"],
   my_stats: ["shop_admin"],
   my_template: ["shop_admin"],
-  my_plan: ["shop_admin"]
+  my_plan: ["shop_admin"],
+  help: ["super_admin", "shop_admin", "operator"]
 };
 
 function extractCommandName(ctx) {

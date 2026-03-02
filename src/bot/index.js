@@ -1,7 +1,7 @@
 const { Telegraf, session } = require("telegraf");
 const { config } = require("../config");
 const { buildSessionStore } = require("../cache/session");
-const { handleStart } = require("./commands/common/start");
+const { handleStart, handleHelp } = require("./commands/common/start");
 const { handleAddOperator } = require("./commands/shopAdmin/addOperator");
 const { handleOperators } = require("./commands/shopAdmin/operators");
 const { handleRemoveOperator } = require("./commands/shopAdmin/removeOperator");
@@ -56,6 +56,7 @@ function createBot() {
   bot.command("my_stats", handleMyStats);
   bot.command("my_template", handleMyTemplate);
   bot.command("my_plan", handleMyPlan);
+  bot.command("help", handleHelp);
 
   bot.command("new", async (ctx) => {
     await startNewOrder(ctx);

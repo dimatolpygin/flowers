@@ -1,5 +1,6 @@
 const { inviteTokens, shops, users } = require("../../../db");
 const { config } = require("../../../config");
+const { Markup } = require("telegraf");
 
 const INVITE_PREFIX = "invite_";
 
@@ -29,11 +30,26 @@ async function handleStart(ctx) {
     const role = ctx.state.user.role;
     const name = ctx.state.user.display_name || ctx.state.user.username || "коллега";
     await ctx.reply(`Привет, ${name}!`);
-    await ctx.reply(roleMessage(role));
+    const layout = roleLayout(role);
+    if (layout.keyboard) {
+      await ctx.reply(layout.text, layout.keyboard);
+    } else {
+      await ctx.reply(layout.text);
+    }
     return;
   }
 
   await ctx.reply("Бот запущен. Если есть инвайт, откройте его через /start invite_<token>.");
+}
+
+async function handleHelp(ctx) {
+  const role = ctx.state.user?.role;
+  const layout = role ? roleLayout(role) : { text: "Команды доступны после входа по инвайту.", keyboard: null };
+  if (layout.keyboard) {
+    await ctx.reply(layout.text, layout.keyboard);
+  } else {
+    await ctx.reply(layout.text);
+  }
 }
 
 async function handleInvite(ctx, token) {
@@ -128,22 +144,42 @@ async function notifyShopAdmins(ctx, shopId, actorName, username) {
   );
 }
 
-function roleMessage(role) {
+function roleLayout(role) {
   if (role === "super_admin") {
-    return "Доступные команды для супер-админа:\n" +
-      "/create_shop, /shops, /shop_info, /set_plan, /set_limits, /suspend_shop,\n" +
-      "/resume_shop, /delete_shop, /reset_stats, /global_stats";
+    return {
+      text:
+        "Вы супер-админ. Быстрые команды: создать магазин, посмотреть список и управлять подписками.",
+      keyboard: Markup.inlineKeyboard([
+        [Markup.button.callback("Создать магазин", "create_shop")],
+        [Markup.button.callback("Список магазинов", "shops")],
+        [Markup.button.callback("Статистика", "global_stats")]
+      ])
+    };
   }
   if (role === "shop_admin") {
-    return "Доступные команды для шоп-админа:\n" +
-      "/add_operator, /operators, /remove_operator, /my_stats, /my_template, /my_plan";
+    return {
+      text:
+        "Вы шоп-админ. Используйте команды для операторов и тарифов. Любая команда доступна через /help.",
+      keyboard: Markup.inlineKeyboard([
+        [Markup.button.callback("Пригласить оператора", "add_operator")],
+        [Markup.button.callback("Мои операторы", "operators")],
+        [Markup.button.callback("Мой план", "my_plan")]
+      ])
+    };
   }
   if (role === "operator") {
-    return "Используйте /new для создания открытки.";
+    return {
+      text: "Флорист, создавайте открытки через /new, как и раньше.",
+      keyboard: Markup.inlineKeyboard([[Markup.button.callback("Новый заказ", "new")]])
+    };
   }
-  return "Команда не определена, обратитесь к администратору.";
+  return {
+    text: "Роль не определена. Обратитесь к администратору.",
+    keyboard: null
+  };
 }
 
 module.exports = {
-  handleStart
+  handleStart,
+  handleHelp
 };
