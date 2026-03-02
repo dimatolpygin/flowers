@@ -26,10 +26,10 @@ async function handleStart(ctx) {
   }
 
   if (ctx.state.user) {
-    await ctx.reply(
-      `Привет, ${ctx.state.user.display_name || ctx.state.user.username || "коллега"}!` +
-        " Используйте /new для создания открытки."
-    );
+    const role = ctx.state.user.role;
+    const name = ctx.state.user.display_name || ctx.state.user.username || "коллега";
+    await ctx.reply(`Привет, ${name}!`);
+    await ctx.reply(roleMessage(role));
     return;
   }
 
@@ -126,6 +126,22 @@ async function notifyShopAdmins(ctx, shopId, actorName, username) {
       }
     })
   );
+}
+
+function roleMessage(role) {
+  if (role === "super_admin") {
+    return "Доступные команды для супер-админа:\n" +
+      "/create_shop, /shops, /shop_info, /set_plan, /set_limits, /suspend_shop,\n" +
+      "/resume_shop, /delete_shop, /reset_stats, /global_stats";
+  }
+  if (role === "shop_admin") {
+    return "Доступные команды для шоп-админа:\n" +
+      "/add_operator, /operators, /remove_operator, /my_stats, /my_template, /my_plan";
+  }
+  if (role === "operator") {
+    return "Используйте /new для создания открытки.";
+  }
+  return "Команда не определена, обратитесь к администратору.";
 }
 
 module.exports = {
