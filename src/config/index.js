@@ -22,6 +22,7 @@ function parseIdList(raw) {
 
 function validateEnv() {
   required("BOT_TOKEN");
+  required("BOT_USERNAME");
   required("SUPABASE_URL");
   required("SUPABASE_SERVICE_ROLE_KEY");
   required("REDIS_URL");
@@ -40,7 +41,8 @@ const config = {
   kieModel: process.env.KIE_MODEL || "nano-banana-2",
   superAdminIds: parseIdList(process.env.SUPER_ADMIN_IDS || ""),
   supabaseBucketLogos: process.env.SUPABASE_BUCKET_LOGOS || "logos",
-  supabaseBucketOutputs: process.env.SUPABASE_BUCKET_OUTPUTS || "outputs"
+  supabaseBucketOutputs: process.env.SUPABASE_BUCKET_OUTPUTS || "outputs",
+  botUsername: process.env.BOT_USERNAME || ""
 };
 
 module.exports = {

@@ -65,6 +65,25 @@ async function updateShopPlan(shopId, payload) {
   return data;
 }
 
+async function updateShopLimits(shopId, payload) {
+  const update = {
+    plan: payload.plan || "custom",
+    generations_limit: payload.generationsLimit,
+    regen_limit_per_order: payload.regenLimitPerOrder,
+    resolution: payload.resolution
+  };
+
+  const { data, error } = await supabase
+    .from("shops")
+    .update(update)
+    .eq("id", shopId)
+    .select("*")
+    .single();
+
+  assertNoError(error, "update shop limits failed");
+  return data;
+}
+
 async function resetShopGenerationUsage(shopId) {
   const { data, error } = await supabase
     .from("shops")
@@ -96,5 +115,6 @@ module.exports = {
   updateShopStatus,
   updateShopPlan,
   resetShopGenerationUsage,
-  updateShopLogoTemplateUrl
+  updateShopLogoTemplateUrl,
+  updateShopLimits
 };

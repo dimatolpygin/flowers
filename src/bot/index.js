@@ -6,6 +6,16 @@ const { ensureAuth } = require("./middleware/auth");
 const { enforceRoles } = require("./middleware/role");
 const { checkShopStatus } = require("./middleware/shopStatus");
 const { handleLogoUpload } = require("./onboarding/logoUpload");
+const { handleCreateShop } = require("./commands/superAdmin/createShop");
+const { handleShops } = require("./commands/superAdmin/shops");
+const { handleShopInfo } = require("./commands/superAdmin/shopInfo");
+const { handleSetPlan } = require("./commands/superAdmin/setPlan");
+const { handleSetLimits } = require("./commands/superAdmin/setLimits");
+const { handleSuspendShop } = require("./commands/superAdmin/suspendShop");
+const { handleResumeShop } = require("./commands/superAdmin/resumeShop");
+const { handleDeleteShop } = require("./commands/superAdmin/deleteShop");
+const { handleResetStats } = require("./commands/superAdmin/resetStats");
+const { handleGlobalStats } = require("./commands/superAdmin/globalStats");
 
 function createBot() {
   const bot = new Telegraf(config.botToken);
@@ -16,6 +26,16 @@ function createBot() {
   bot.use(checkShopStatus);
 
   bot.start(handleStart);
+  bot.command("create_shop", handleCreateShop);
+  bot.command("shops", handleShops);
+  bot.command("shop_info", handleShopInfo);
+  bot.command("set_plan", handleSetPlan);
+  bot.command("set_limits", handleSetLimits);
+  bot.command("suspend_shop", handleSuspendShop);
+  bot.command("resume_shop", handleResumeShop);
+  bot.command("delete_shop", handleDeleteShop);
+  bot.command("reset_stats", handleResetStats);
+  bot.command("global_stats", handleGlobalStats);
 
   bot.command("new", async (ctx) => {
     await ctx.reply("/new flow is not wired yet. Next step: FSM implementation.");
