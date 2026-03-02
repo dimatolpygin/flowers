@@ -1,7 +1,7 @@
 const { Telegraf, session } = require("telegraf");
 const { config } = require("../config");
 const { buildSessionStore } = require("../cache/session");
-const { handleStart, handleHelp } = require("./commands/common/start");
+const { handleStart, handleHelp, handleStartAction } = require("./commands/common/start");
 const { handleAddOperator } = require("./commands/shopAdmin/addOperator");
 const { handleOperators } = require("./commands/shopAdmin/operators");
 const { handleRemoveOperator } = require("./commands/shopAdmin/removeOperator");
