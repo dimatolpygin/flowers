@@ -206,6 +206,7 @@ async function generateAndShowVariants(ctx, options = {}) {
   if (options.resetRegen !== false) {
     order.generation.regenCount = 0;
   }
+  await ctx.reply("⏳ Запускаю генерацию двух вариантов...");
   const prompt = buildCardPrompt({
     style: order.style,
     description: order.description,
@@ -309,6 +310,17 @@ function extractImageUrls(record) {
   collectFrom(record?.data?.outputs);
   collectFrom(record?.data?.records);
   collectFrom(record?.data?.result?.image_output);
+  const resultJson = record?.data?.resultJson;
+  if (resultJson) {
+    try {
+      const parsed = typeof resultJson === "string" ? JSON.parse(resultJson) : resultJson;
+      if (Array.isArray(parsed?.resultUrls)) {
+        parsed.resultUrls.forEach(pushIfUrl);
+      }
+    } catch (err) {
+      console.warn("failed to parse resultJson", err);
+    }
+  }
   return urls;
 }
 
@@ -446,7 +458,8 @@ async function handleCallback(ctx) {
     return;
   }
   if (data === "regen") {
-    const order = ctx.session.newOrder;
+    const session = ensureSession(ctx);
+    const order = session.newOrder;
     const limit = ctx.state.shop?.regen_limit_per_order ?? 0;
     if (order.generation.regenCount >= limit) {
       await ctx.answerCbQuery("Лимит перегенераций исчерпан.");
