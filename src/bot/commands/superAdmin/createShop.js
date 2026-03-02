@@ -1,17 +1,8 @@
 const { shops, inviteTokens } = require("../../../db");
+const { ensureBotUsername } = require("../../utils/ensureBotUsername");
 const { config } = require("../../../config");
 
 const INVITE_TTL_DAYS = 7;
-
-async function ensureBotUsername(ctx) {
-  if (config.botUsername) {
-    return config.botUsername;
-  }
-
-  const me = await ctx.telegram.getMe();
-  config.botUsername = me.username;
-  return config.botUsername;
-}
 
 async function handleCreateShop(ctx) {
   const text = ctx.message?.text || "";

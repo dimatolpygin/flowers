@@ -31,7 +31,20 @@ async function listGenerationLogByShop(shopId, limit = 100) {
   return data || [];
 }
 
+async function listGenerationLogSince(shopId, sinceIso) {
+  const { data, error } = await supabase
+    .from("generation_log")
+    .select("*")
+    .eq("shop_id", shopId)
+    .gte("created_at", sinceIso)
+    .order("created_at", { ascending: false });
+
+  assertNoError(error, "list generation log since failed");
+  return data || [];
+}
+
 module.exports = {
   createGenerationLog,
-  listGenerationLogByShop
+  listGenerationLogByShop,
+  listGenerationLogSince
 };

@@ -12,6 +12,17 @@ async function getUserByTelegramId(telegramId) {
   return data;
 }
 
+async function getUserById(id) {
+  const { data, error } = await supabase
+    .from("users")
+    .select("*")
+    .eq("id", id)
+    .maybeSingle();
+
+  assertNoError(error, "get user by id failed");
+  return data;
+}
+
 async function createUser(payload) {
   const { data, error } = await supabase
     .from("users")
@@ -63,5 +74,6 @@ module.exports = {
   createUser,
   listOperatorsByShop,
   listShopAdmins,
-  deleteUserById
+  deleteUserById,
+  getUserById
 };

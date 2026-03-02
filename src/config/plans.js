@@ -5,7 +5,8 @@ const plans = {
     regenLimitPerOrder: 1,
     resolution: "1K",
     durationDays: 30,
-    price: 0
+    price: 0,
+    operatorsLimit: 1
   },
   basic: {
     name: "basic",
@@ -13,7 +14,8 @@ const plans = {
     regenLimitPerOrder: 2,
     resolution: "2K",
     durationDays: 30,
-    price: 0
+    price: 0,
+    operatorsLimit: 3
   },
   pro: {
     name: "pro",
@@ -21,7 +23,8 @@ const plans = {
     regenLimitPerOrder: 3,
     resolution: "4K",
     durationDays: 30,
-    price: 0
+    price: 0,
+    operatorsLimit: 10
   }
 };
 

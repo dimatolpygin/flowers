@@ -51,7 +51,8 @@ async function updateShopPlan(shopId, payload) {
     generations_limit: payload.generationsLimit,
     regen_limit_per_order: payload.regenLimitPerOrder,
     resolution: payload.resolution,
-    subscription_expires_at: payload.subscriptionExpiresAt
+    subscription_expires_at: payload.subscriptionExpiresAt,
+    operators_limit: payload.operatorsLimit
   };
 
   const { data, error } = await supabase
@@ -70,7 +71,8 @@ async function updateShopLimits(shopId, payload) {
     plan: payload.plan || "custom",
     generations_limit: payload.generationsLimit,
     regen_limit_per_order: payload.regenLimitPerOrder,
-    resolution: payload.resolution
+    resolution: payload.resolution,
+    operators_limit: payload.operatorsLimit
   };
 
   const { data, error } = await supabase

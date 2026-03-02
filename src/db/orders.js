@@ -45,8 +45,24 @@ async function listOrdersByShop(shopId, limit = 30) {
   return data || [];
 }
 
+async function countOrdersByOperator(shopId) {
+  const { data = [], error } = await supabase
+    .from("orders")
+    .select("operator_id")
+    .eq("shop_id", shopId);
+
+  assertNoError(error, "count orders by operator failed");
+
+  return data.reduce((acc, order) => {
+    if (!order.operator_id) return acc;
+    acc[order.operator_id] = (acc[order.operator_id] || 0) + 1;
+    return acc;
+  }, {});
+}
+
 module.exports = {
   createOrder,
   getOrderById,
-  listOrdersByShop
+  listOrdersByShop,
+  countOrdersByOperator
 };
