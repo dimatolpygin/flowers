@@ -42,7 +42,7 @@ async function createTask({ prompt, imageInput = [], aspectRatio = "3:4", resolu
 
 async function queryTask(taskId) {
   const encodedTaskId = encodeURIComponent(taskId);
-  return kieRequest(`/api/v1/jobs/queryRecord?taskId=${encodedTaskId}`, {
+  return kieRequest(`/api/v1/jobs/recordInfo?taskId=${encodedTaskId}`, {
     method: "GET",
     headers: {
       "Content-Type": "application/json"
