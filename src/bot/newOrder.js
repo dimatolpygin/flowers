@@ -14,6 +14,13 @@ const STYLE_OPTIONS = [
   { label: "Комикс", id: "comic" }
 ];
 
+function ensureSession(ctx) {
+  if (!ctx.session) {
+    ctx.session = {};
+  }
+  return ctx.session;
+}
+
 function initNewOrderSession() {
   return {
     step: 1,
@@ -30,8 +37,9 @@ function initNewOrderSession() {
 }
 
 function askForPhotos(ctx) {
+  const session = ensureSession(ctx);
   const buttons = [Markup.button.callback("Пропустить ", "skip_photos")];
-  ctx.session.newOrder.step = 1;
+  session.newOrder.step = 1;
   ctx.reply(
     "Шаг 1 — загрузите до 2 фотографий (референсы). Отправьте фото или нажмите “Пропустить”.",
     Markup.inlineKeyboard(buttons)
@@ -39,23 +47,27 @@ function askForPhotos(ctx) {
 }
 
 function askForStyle(ctx) {
-  ctx.session.newOrder.step = 2;
+  const session = ensureSession(ctx);
+  session.newOrder.step = 2;
   const keyboard = STYLE_OPTIONS.map((option) => [Markup.button.callback(option.label, `style_${option.id}`)]);
   ctx.reply("Шаг 2 — выберите стиль", Markup.inlineKeyboard(keyboard));
 }
 
 function askForDescription(ctx) {
-  ctx.session.newOrder.step = 3;
+  const session = ensureSession(ctx);
+  session.newOrder.step = 3;
   ctx.reply("Шаг 3 — опишите, что должно быть на открытке:");
 }
 
 function askForGreeting(ctx) {
-  ctx.session.newOrder.step = 4;
+  const session = ensureSession(ctx);
+  session.newOrder.step = 4;
   ctx.reply("Шаг 4 — введите текст поздравления:");
 }
 
 function showSummary(ctx) {
-  const order = ctx.session.newOrder;
+  const session = ensureSession(ctx);
+  const order = session.newOrder;
   order.step = 5;
   const lines = [
     `Фото: ${order.photos.length} шт.`,
@@ -89,12 +101,14 @@ async function startNewOrder(ctx) {
     return;
   }
 
-  ctx.session.newOrder = initNewOrderSession();
+  const session = ensureSession(ctx);
+  session.newOrder = initNewOrderSession();
   askForPhotos(ctx);
 }
 
 async function handlePhoto(ctx) {
-  const order = ctx.session.newOrder;
+  const session = ensureSession(ctx);
+  const order = session.newOrder;
   if (!order || order.step !== 1) {
     return;
   }
@@ -117,7 +131,8 @@ async function handlePhoto(ctx) {
 }
 
 function handleSkipPhotos(ctx) {
-  const order = ctx.session.newOrder;
+  const session = ensureSession(ctx);
+  const order = session.newOrder;
   if (!order) {
     return;
   }
@@ -125,7 +140,8 @@ function handleSkipPhotos(ctx) {
 }
 
 function handleStyle(ctx, styleId) {
-  const order = ctx.session.newOrder;
+  const session = ensureSession(ctx);
+  const order = session.newOrder;
   if (!order) {
     return ctx.answerCbQuery("Сессия не найдена.");
   }
@@ -135,7 +151,8 @@ function handleStyle(ctx, styleId) {
 }
 
 async function handleText(ctx) {
-  const order = ctx.session.newOrder;
+  const session = ensureSession(ctx);
+  const order = session.newOrder;
   if (!order) {
     return;
   }
@@ -159,14 +176,14 @@ async function regenerateVariants(ctx) {
 }
 
 async function generateAndShowVariants(ctx, options = {}) {
-  const order = ctx.session.newOrder;
+  const session = ensureSession(ctx);
+  const order = session.newOrder;
   if (!order) {
     return;
   }
   if (options.resetRegen !== false) {
     order.generation.regenCount = 0;
   }
-  order.generation.regenCount = 0;
   const prompt = buildCardPrompt({
     style: order.style,
     description: order.description,
@@ -274,7 +291,8 @@ function extractImageUrls(record) {
 }
 
 async function selectVariant(ctx, index) {
-  const order = ctx.session.newOrder;
+  const session = ensureSession(ctx);
+  const order = session.newOrder;
   if (!order || !order.generation.variants[index]) {
     await ctx.answerCbQuery("Вариант не найден");
     return;
@@ -322,7 +340,8 @@ async function finalizeOrder(ctx, order, variantIndex) {
   await ctx.replyWithDocument({ source: png, filename: "card.png" });
   await ctx.replyWithDocument({ source: pdf, filename: "card.pdf" });
   await ctx.reply("Готово! /new — новый заказ.");
-  ctx.session.newOrder = null;
+  const session = ensureSession(ctx);
+  session.newOrder = null;
 }
 
 async function fetchImageBuffer(url) {
@@ -346,6 +365,7 @@ function renderPdf(pngBuffer) {
 }
 
 async function handleCallback(ctx) {
+  const session = ensureSession(ctx);
   const data = ctx.callbackQuery?.data;
   if (!data) {
     return;
