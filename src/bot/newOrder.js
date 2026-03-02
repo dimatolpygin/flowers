@@ -245,7 +245,7 @@ async function presentVariants(ctx, variants) {
   await ctx.reply("Готово! Выбери вариант:");
   for (let i = 0; i < variants.length; i++) {
     try {
-      const buffer = await downloadImageBuffer(variants[i].url);
+      const buffer = await fetchImageBuffer(variants[i].url);
       await ctx.replyWithPhoto({ source: buffer }, { caption: `Вариант ${i + 1}` });
     } catch (err) {
       console.error("variant download failed", err);
@@ -420,77 +420,81 @@ function renderPdf(pngBuffer) {
 }
 
 async function handleCallback(ctx) {
-  const session = ensureSession(ctx);
-  const data = ctx.callbackQuery?.data;
-  if (!data) {
-    return;
-  }
-
-  if (data === "skip_photos") {
-    handleSkipPhotos(ctx);
-    ctx.answerCbQuery();
-    return;
-  }
-  if (data === "ready_photos") {
-    handleReadyPhotos(ctx);
-    return;
-  }
-
-  if (data.startsWith("style_")) {
-    handleStyle(ctx, data.replace("style_", ""));
-    return;
-  }
-
-  if (data === "edit_photos") {
-    askForPhotos(ctx);
-    ctx.answerCbQuery();
-    return;
-  }
-  if (data === "edit_style") {
-    askForStyle(ctx);
-    ctx.answerCbQuery();
-    return;
-  }
-  if (data === "edit_description") {
-    askForDescription(ctx);
-    ctx.answerCbQuery();
-    return;
-  }
-  if (data === "edit_greeting") {
-    askForGreeting(ctx);
-    ctx.answerCbQuery();
-    return;
-  }
-  if (data === "confirm_generate") {
-    generateAndShowVariants(ctx).catch(async (err) => {
-      console.error(err);
-      await ctx.reply("Ошибка генерации. Попробуйте ещё раз.");
-    });
-    ctx.answerCbQuery("Генерация...");
-    return;
-  }
-
-  if (data === "variant_1") {
-    selectVariant(ctx, 0);
-    return;
-  }
-  if (data === "variant_2") {
-    selectVariant(ctx, 1);
-    return;
-  }
-  if (data === "regen") {
+  try {
     const session = ensureSession(ctx);
-    const order = session.newOrder;
-    const limit = ctx.state.shop?.regen_limit_per_order ?? 0;
-    if (order.generation.regenCount >= limit) {
-      await ctx.answerCbQuery("Лимит перегенераций исчерпан.");
+    const data = ctx.callbackQuery?.data;
+    if (!data) {
       return;
     }
-    order.generation.regenCount += 1;
-    regenerateVariants(ctx).catch((err) => {
-      console.error(err);
-    });
-    return;
+
+    if (data === "skip_photos") {
+      handleSkipPhotos(ctx);
+      await ctx.answerCbQuery();
+      return;
+    }
+    if (data === "ready_photos") {
+      handleReadyPhotos(ctx);
+      return;
+    }
+
+    if (data.startsWith("style_")) {
+      handleStyle(ctx, data.replace("style_", ""));
+      return;
+    }
+
+    if (data === "edit_photos") {
+      askForPhotos(ctx);
+      await ctx.answerCbQuery();
+      return;
+    }
+    if (data === "edit_style") {
+      askForStyle(ctx);
+      await ctx.answerCbQuery();
+      return;
+    }
+    if (data === "edit_description") {
+      askForDescription(ctx);
+      await ctx.answerCbQuery();
+      return;
+    }
+    if (data === "edit_greeting") {
+      askForGreeting(ctx);
+      await ctx.answerCbQuery();
+      return;
+    }
+    if (data === "confirm_generate") {
+      await ctx.answerCbQuery("Генерация...");
+      await generateAndShowVariants(ctx);
+      return;
+    }
+
+    if (data === "variant_1") {
+      await selectVariant(ctx, 0);
+      return;
+    }
+    if (data === "variant_2") {
+      await selectVariant(ctx, 1);
+      return;
+    }
+    if (data === "regen") {
+      const order = session.newOrder;
+      if (!order) {
+        await ctx.answerCbQuery("Сессия не найдена");
+        return;
+      }
+      const limit = ctx.state.shop?.regen_limit_per_order ?? 0;
+      if (order.generation.regenCount >= limit) {
+        await ctx.answerCbQuery("Лимит перегенераций исчерпан.");
+        return;
+      }
+      order.generation.regenCount += 1;
+      await regenerateVariants(ctx);
+      return;
+    }
+  } catch (err) {
+    console.error("newOrder callback error", err);
+    await ctx.answerCbQuery("Ошибка действия").catch(() => {});
+    await ctx.reply("Не удалось обработать действие. Повторите, пожалуйста.");
   }
 }
 
