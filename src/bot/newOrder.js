@@ -428,9 +428,12 @@ async function fetchImageBuffer(url) {
 
 function renderPdf(pngBuffer) {
   return new Promise((resolve, reject) => {
-    const doc = new PDFDocument({ size: "A6" });
+    const mmToPt = 72 / 25.4;
+    const width = 105 * mmToPt;
+    const height = 148 * mmToPt;
+    const doc = new PDFDocument({ size: [width, height], margin: 0 });
     const chunks = [];
-    doc.image(pngBuffer, { fit: [1240 * 0.75, 1748 * 0.75], align: "center", valign: "center" });
+    doc.image(pngBuffer, 0, 0, { fit: [width, height], align: "center", valign: "center" });
     doc.end();
     doc.on("data", (chunk) => chunks.push(chunk));
     doc.on("end", () => resolve(Buffer.concat(chunks)));
@@ -483,7 +486,10 @@ async function handleCallback(ctx) {
     }
     if (data === "confirm_generate") {
       await ctx.answerCbQuery("Генерация...");
-      await generateAndShowVariants(ctx);
+      generateAndShowVariants(ctx).catch(async (err) => {
+        console.error(err);
+        await ctx.reply("Ошибка генерации. Попробуйте ещё раз.");
+      });
       return;
     }
 
@@ -507,7 +513,10 @@ async function handleCallback(ctx) {
         return;
       }
       order.generation.regenCount += 1;
-      await regenerateVariants(ctx);
+      ctx.answerCbQuery("Перегенерируем...");
+      regenerateVariants(ctx).catch((err) => {
+        console.error(err);
+      });
       return;
     }
   } catch (err) {
